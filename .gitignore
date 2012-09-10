@@ -12,7 +12,10 @@ var
 sdist
 develop-eggs
 .installed.cfg
-.idea # Pycharm config files.
+
+# IDE config files
+.idea
+
 
 # Installer logs
 pip-log.txt
