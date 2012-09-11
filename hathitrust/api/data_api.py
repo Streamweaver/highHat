@@ -5,7 +5,7 @@ API.  For more information see the documetation at
 
 __author__ = 'Streamweaver'
 
-import urllib, urllib2, json
+import urllib, urllib2, json, os
 from xml.etree import ElementTree
 
 from hathitrust.api import API_BASEURL, APIException
@@ -23,7 +23,7 @@ class HtResource(object):
         """
         self.id = id
 
-    def _resource_url(self, resource, segment, params=None):
+    def _resource_url(self, resource, segment=None, params=None):
         """
         Constructs a URL for the desired HathiTrust Data API service.  See
         documentation at http://www.hathitrust.org/data_api#URI_scheme for
@@ -72,6 +72,37 @@ class HtResource(object):
         request = urllib2.urlopen(url)
         return json.loads(request.read())
 
+    def _get_binary_resource(self, resource, location, filename, chunk=16384):
+        """
+        Takes a binary file download and writes it to `filename` to `location`.
+
+        :param resoruce: String of resource to request from HathiTrust Data API.
+        :param location: String of path to save the resultant download to.
+        :param fielname: String of filename to write file as.
+        :param chunk: Int of bytes to read the download file in.
+        """
+        location = self._check_path(location)
+        url = self._resource_url(resource)
+        request = urllib2.urlopen(url)
+        with file("%s/%s" % (location, filename), 'wb') as f:
+            while True:
+                buffer = request.read(chunk)
+                if not buffer:
+                    break
+                f.write(buffer)
+            f.close()
+
+    def _check_path(self, location):
+        """
+        Checks to ensure location is a valid location on the filesystem and
+        normalizes it into a path object.
+
+        :param location:  String of path.
+        """
+        if not os.path.exists(location):
+            raise IOError("Location %s does not exist on the filesystem!")
+        return os.path.normpath(location)
+
     def meta(self, segment=None, json=False):
         """Calls the meta resource."""
         return self._get_metadata_resource('meta', segment, json)
@@ -80,9 +111,18 @@ class HtResource(object):
         """Calls the structure resource."""
         return self._get_metadata_resource('structure', None, json)
 
-    def aggregate(self):
-        # TODO: Someone implement me.
-        return None
+    def aggregate(self, location, filename=None):
+        """
+        Saves the aggregate resource return to location.  By default the filename
+        will be <Item ID>.zip but an optional filename may be supplied.
+
+        :param location:  String of path to write file to.
+        :param filename:  Sting of filename to use instead of default <ID>.zip
+
+        """
+        if not filename:
+            filename = "%s.zip" % self.id
+        self._get_binary_resource('aggregate', location, filename)
 
     def pageimage(self):
         # TODO: Someone implement me.
