@@ -40,9 +40,9 @@ class HtResource(object):
             url = url + "?" + urllib.urlencode(params)
         return url
 
-    def meta(self, segment=None, json=False):
+    def _get_metadata_resource(self, resource, segment=None, json=False):
         """
-        Calls the meta resource for this HathiTrust Object.  By default
+        Calls the named resource for this HathiTrust Object.  By default
         it returns parsed eTree of the XML return from the API but may
         optionally return the a pythonic representation of the object
         loaded from the JSON return.
@@ -51,24 +51,34 @@ class HtResource(object):
         :param json: Boolean to load JSON return into a pythonic object.
 
         """
+        if segment:
+            segment = "%s" % segment
         if json:
-            return self._meta_json(segment)
+            return self._get_metadata_resource_json(resource, segment)
 
-        url = self._resource_url('meta', segment)
+        url = self._resource_url(resource, segment)
         tree = ElementTree.parse(urllib.urlopen(url))
         return tree.getroot()
 
-    def _meta_json(self, segment):
+    def _get_metadata_resource_json(self, resource, segment):
         """
-        Return a pythonic object parsed from the JSON return instead.
+        Calls the JSON return for a HathiTrust Resource and returns
+        the parsed pythonic object.
+
+        :params resource:  String of resource to be called.
+        :params segment:  Segment of object to call for individual page metadata.
         """
-        url = self._resource_url('meta', segment, params={'alt': 'json'})
+        url = self._resource_url(resource, segment, params={'alt': 'json'})
         request = urllib2.urlopen(url)
         return json.loads(request.read())
 
-    def structure(self):
-        # TODO: Someone implement me.
-        return None
+    def meta(self, segment=None, json=False):
+        """Calls the meta resource."""
+        return self._get_metadata_resource('meta', segment, json)
+
+    def structure(self, json=False):
+        """Calls the structure resource."""
+        return self._get_metadata_resource('structure', None, json)
 
     def aggregate(self):
         # TODO: Someone implement me.
@@ -86,6 +96,6 @@ class HtResource(object):
         # TODO: someone implement me.
         return None
 
-    def pagemeta(self):
-        # TODO: someone implement me.
-        return None
+    def pagemeta(self, segment, json=False):
+        """Calls the pagemeta resource."""
+        return self._get_metadata_resource('pagemeta', segment, json)
