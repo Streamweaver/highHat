@@ -5,9 +5,12 @@ API.  For more information see the documetation at
 
 __author__ = 'Streamweaver'
 
-import urllib, urllib2
+import urllib, urllib2, json
+from xml.etree import ElementTree
 
 from hathitrust.api import API_BASEURL, APIException
+
+NS_HTD = {"http://schemas.hathitrust.org/htd/2009"}
 
 class HtResource(object):
 
@@ -20,7 +23,7 @@ class HtResource(object):
         """
         self.id = id
 
-    def _resource_url(self, resource, params=None):
+    def _resource_url(self, resource, segment, params=None):
         """
         Constructs a URL for the desired HathiTrust Data API service.  See
         documentation at http://www.hathitrust.org/data_api#URI_scheme for
@@ -31,6 +34,8 @@ class HtResource(object):
 
         """
         url = "".join([API_BASEURL, resource, "/", self.id])
+        if segment:
+            url = url + "/" + segment
         if params:
             url = url + "?" + urllib.urlencode(params)
         return url
@@ -46,6 +51,20 @@ class HtResource(object):
         :param json: Boolean to load JSON return into a pythonic object.
 
         """
+        if json:
+            return self._meta_json(segment)
+
+        url = self._resource_url('meta', segment)
+        tree = ElementTree.parse(urllib.urlopen(url))
+        return tree.getroot()
+
+    def _meta_json(self, segment):
+        """
+        Return a pythonic object parsed from the JSON return instead.
+        """
+        url = self._resource_url('meta', segment, params={'alt': 'json'})
+        request = urllib2.urlopen(url)
+        return json.loads(request.read())
 
     def structure(self):
         # TODO: Someone implement me.
