@@ -8,7 +8,7 @@ __author__ = 'Streamweaver'
 import urllib, urllib2, json, os
 from xml.etree import ElementTree
 
-from hathitrust.api import API_BASEURL, APIException
+from hathitrustclient.api import API_BASEURL, APIException
 
 NS_HTD = {"http://schemas.hathitrust.org/htd/2009"}
 
@@ -26,7 +26,7 @@ class HtResource(object):
     def _resource_url(self, resource, segment=None, params=None):
         """
         Constructs a URL for the desired HathiTrust Data API service.  See
-        documentation at http://www.hathitrust.org/data_api#URI_scheme for
+        documentation at http://www.hathitrustclient.org/data_api#URI_scheme for
         more information on the URI Schema.
 
         :param resource: String of pre-defined API object resource to call.

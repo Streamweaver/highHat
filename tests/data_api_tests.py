@@ -1,15 +1,16 @@
 __author__ = 'Streamweaver'
 
-import unittest
+import unittest, os
 from xml.etree.ElementTree import Element
 
-from hathitrust.api.data_api import HtResource
+from hathitrustclient.api.data_api import HtResource
 
 class TestHtResource(unittest.TestCase):
 
     def setUp(self):
         self.id = 'uva.x001037769' # The Three Musketeers
         self.resource = HtResource(self.id)
+        self.location = os.getcwd() # for testing binary downloads
 
     def test_meta(self):
         # Simiple test to ensure default return is an Element object instance
@@ -37,3 +38,8 @@ class TestHtResource(unittest.TestCase):
         # Test parsing of a JSON return instead.
         result_json = self.resource.pagemeta(1, json=True)
         self.assertIsInstance(result_json, dict)
+
+# TODO: Implement a OAuthTokenRetriever to get this test to work.
+#    def test_aggregate(self):
+#        # Tests the aggregate file.
+#        self.resource.aggregate(self.location)
